@@ -1,0 +1,39 @@
+services:
+  gardener-api:
+    build: .
+    environment:
+      GARDEN_DB_PATH: /data/garden.db
+      GARDEN_API_KEY: ${GARDEN_API_KEY:-change-me}
+    volumes:
+      - gardener-data:/data
+    ports:
+      - "8100:8000"
+    restart: unless-stopped
+
+  gardener-mcp:
+    build: .
+    command: ["node", "dist/mcp-http.js"]
+    environment:
+      GARDEN_DB_PATH: /data/garden.db
+    volumes:
+      - gardener-data:/data
+    ports:
+      - "8101:8001"
+    restart: unless-stopped
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    environment:
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:-replace-me-before-production}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    volumes:
+      - gardening-open-webui-data:/app/backend/data
+    ports:
+      - "5000:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+volumes:
+  gardener-data:
+  gardening-open-webui-data:
