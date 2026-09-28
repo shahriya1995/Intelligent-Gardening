@@ -1,77 +1,220 @@
-# Open Gardener
+# Intelligent Gardening
 
-An open, model-independent gardening planner, scheduler, and cited knowledge service designed to work with Open WebUI, any MCP client, or any HTTP client.
+Intelligent Gardening is a model-independent gardening platform with a React web application, REST/OpenAPI service, and MCP tools for Open WebUI or another MCP-compatible client.
+
+The backend does not contain an AI model. The connected client chooses the model, while Intelligent Gardening stores garden information and performs tool actions.
 
 ## Architecture
 
-- **Open WebUI** is the multi-user chat interface and model gateway. Users can connect Ollama or another OpenAI-compatible provider.
-- **Gardener API** is a TypeScript/Express service exposing REST/OpenAPI tools at port `8000`.
-- **Gardener MCP** uses the TypeScript MCP SDK and exposes the same operations over Streamable HTTP at port `8001`.
-- **SQLite** stores gardens, tasks, and source-attributed knowledge for the first version.
-- Retrieval starts with portable lexical ranking. Its stable service boundary lets us add embeddings and pgvector without changing clients.
-
-The language model is deliberately not embedded in the gardening service. Open WebUI—or another client—chooses the model and calls these tools.
-
-## Isolated clients
-
-This project runs its own Open WebUI at `http://localhost:5000`. The sibling `open-webui-mcp` project remains at `http://localhost:3000`. They use separate Docker networks and data volumes, so their accounts, settings, and tool registrations do not cross project boundaries.
-
-## Run this gardening project
-
-```bash
-docker compose up -d --build
+```mermaid
+flowchart LR
+    User[User]
+    User --> Web[React web app]
+    Web -->|REST through /api| API[Gardener API]
+    User --> Client[Open WebUI or MCP client]
+    Client --> Model[User-selected model]
+    Client -->|Streamable HTTP| MCP[Gardener MCP]
+    API --> Service[Shared gardening service]
+    MCP --> Service
+    Service --> DB[(SQLite garden.db)]
+    MCP --> Weather[Open-Meteo]
 ```
 
-## Connect the gardening tools to Open WebUI
+The API and MCP processes are built from the same TypeScript server application. They use the same service layer and share one SQLite database through a Docker volume.
 
-### Recommended: OpenAPI
+| Component | Technology | Default address |
+| --- | --- | --- |
+| Standalone web app | React, TypeScript, Vite, Nginx | `http://localhost:5200` |
+| REST/OpenAPI API | TypeScript, Express, Zod | `http://localhost:8100` |
+| MCP server | TypeScript MCP SDK, Streamable HTTP | `http://localhost:8101/mcp` |
+| Optional Open WebUI | Open WebUI container | `http://localhost:5000` |
+| Storage | SQLite Docker volume | `/data/garden.db` |
 
-In Open WebUI, add a global OpenAPI tool server:
+## Features available now
 
-- URL inside Compose: `http://gardener-api:8000`
-- Spec path: `openapi.json`
-- Authentication: Bearer token matching `GARDEN_API_KEY`
+- Create and list garden profiles with a location and hardiness zone.
+- Add plants with variety, quantity, planting date, and notes.
+- List active plants and archive plants that are no longer growing.
+- Schedule dated gardening tasks, list outstanding work, and mark tasks complete.
+- Store reference documents with publisher, region, tags, and source URL.
+- Search saved references with lexical ranking and return citation metadata.
+- Get the current date and time for date-sensitive planning through MCP.
+- Get live conditions and forecasts from Open-Meteo for a saved garden through MCP.
+- Use gardening operations through REST/OpenAPI or MCP.
+- Run an independent React frontend that verifies its connection to the API.
 
-The OpenAPI route is easiest to share and also works with non-MCP clients.
+The React frontend currently provides the web foundation and server-status interface. Garden-management forms and built-in chat are not implemented in the frontend yet; complete garden operations are available through REST and MCP clients.
 
-### Native MCP
+## Repository structure
 
-On Open WebUI 0.6.31 or later, an admin can add a Streamable HTTP MCP server:
+```text
+apps/
+  server/
+    src/        REST API, MCP tools, service layer, and SQLite access
+    tests/      Service tests
+    Dockerfile
+  web/
+    src/        React and TypeScript frontend
+    Dockerfile
+    nginx.conf  Static hosting and /api reverse proxy
 
-- URL inside Compose: `http://gardener-mcp:8001/mcp`
+compose.yaml
+package.json    npm workspace configuration
+```
 
-MCP server registration is admin-only in Open WebUI. Set a persistent `WEBUI_SECRET_KEY` before production use.
+## Prerequisites
 
-## HTTP examples
+- Docker with Docker Compose
+- Node.js 22 or newer only for development outside Docker
+
+## Configure the application
+
+Copy the example environment file:
 
 ```bash
-curl -H 'Authorization: Bearer change-me' http://localhost:8100/gardens
+cp .env.example .env
+```
 
+Generate private values for `GARDEN_API_KEY` and `WEBUI_SECRET_KEY`:
+
+```bash
+openssl rand -hex 32
+```
+
+Run the command twice and place the two different values in `.env`:
+
+```dotenv
+GARDEN_API_KEY=your-gardener-api-secret
+WEBUI_SECRET_KEY=your-open-webui-secret
+OLLAMA_BASE_URL=http://host.docker.internal:11434
+```
+
+## Run the core application
+
+Build and start the web app, REST API, and MCP server:
+
+```bash
+docker compose up -d --build gardener-api gardener-mcp gardener-web
+```
+
+Check their status:
+
+```bash
+docker compose ps
+```
+
+Open the standalone frontend at `http://localhost:5200`.
+
+Check the API:
+
+```bash
+curl http://localhost:8100/health
+```
+
+Expected response:
+
+```json
+{"status":"ok"}
+```
+
+## Use the REST API
+
+Load the environment variables:
+
+```bash
+set -a
+source .env
+set +a
+```
+
+Create a garden:
+
+```bash
 curl -X POST http://localhost:8100/gardens \
-  -H 'Authorization: Bearer change-me' \
-  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $GARDEN_API_KEY" \
+  -H "Content-Type: application/json" \
   -d '{"name":"Backyard","location":"Portland, OR","hardiness_zone":"8b"}'
 ```
 
-The OpenAPI specification is available from the host at `http://localhost:8100/openapi.json`.
+List saved gardens:
 
-## TypeScript development
+```bash
+curl http://localhost:8100/gardens \
+  -H "Authorization: Bearer $GARDEN_API_KEY"
+```
 
-Requires Node.js 22 or newer (the database uses Node's built-in SQLite module).
+The complete API description and request schemas are available at `http://localhost:8100/openapi.json`.
+
+## Use with Open WebUI
+
+Start the optional Open WebUI profile:
+
+```bash
+docker compose --profile open-webui up -d --build
+```
+
+Open `http://localhost:5000`, sign in, and configure a model provider supported by Open WebUI.
+
+As an administrator, add an external MCP tool server:
+
+```text
+Type: Streamable HTTP
+URL: http://gardener-mcp:8001/mcp
+Authentication: None
+```
+
+Use `gardener-mcp:8001` inside Open WebUI. The host address `localhost:8101` is for clients running directly on the host.
+
+After verification, enable the tools in a chat and try:
+
+```text
+Create a garden named Backyard in Portland, Oregon, hardiness zone 8b.
+```
+
+```text
+Add four Roma tomato plants to my Backyard garden.
+```
+
+```text
+Show my outstanding garden tasks.
+```
+
+The current MCP endpoint has no bearer-token validation and is intended for local development. Do not expose port `8101` publicly.
+
+## Local TypeScript development
+
+Install workspace dependencies:
 
 ```bash
 npm install
-npm run typecheck
-npm test
-npm run dev
 ```
 
-## Development roadmap
+Run the backend:
 
-1. Add accounts/tenant isolation and PostgreSQL migrations.
-2. Build licensed document ingestion, chunking, deduplication, and provenance checks.
-3. Add configurable embedding providers and hybrid pgvector search.
-4. Generate climate-aware planting plans using weather and frost-date sources.
-5. Add reminders, observations, photo attachments, and cautious disease triage.
+```bash
+npm run dev:server
+```
 
-Do not expose this first scaffold publicly yet: its shared database and single API key are intended for local development.
+In another terminal, run the frontend:
+
+```bash
+npm run dev:web
+```
+
+The Vite server runs at `http://localhost:5173` and proxies `/api` to `http://localhost:8100`.
+
+Run all checks:
+
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+## Stop the application
+
+```bash
+docker compose --profile open-webui down
+```
+
+Garden data remains in the `gardener-data` Docker volume. Running `docker compose down -v` also deletes the database and Open WebUI data volumes.

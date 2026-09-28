@@ -8,7 +8,7 @@ function object(value: unknown, label: string): JsonObject {
 }
 
 async function json(url: URL, label: string): Promise<JsonObject> {
-  const response = await fetch(url, { headers: { "User-Agent": "Open-Gardener/0.2" }, signal: AbortSignal.timeout(10_000) });
+  const response = await fetch(url, { headers: { "User-Agent": "Intelligent-Gardening/0.3" }, signal: AbortSignal.timeout(10_000) });
   if (!response.ok) throw new Error(`${label} request failed (${response.status})`);
   return object(await response.json(), label);
 }

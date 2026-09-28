@@ -6,7 +6,7 @@ const searchSchema = { type: "object", required: ["query"], properties: { query:
 
 export const openApiDocument = {
   openapi: "3.1.0",
-  info: { title: "Open Gardener Tools", version: "0.2.0", description: "Model-independent gardening planner, scheduler, and cited knowledge API." },
+  info: { title: "Intelligent Gardening Tools", version: "0.3.0", description: "Model-independent gardening planner, scheduler, and cited knowledge API." },
   servers: [{ url: "/" }],
   components: { securitySchemes: { bearerAuth: { type: "http", scheme: "bearer" } } },
   security: [{ bearerAuth: [] }],

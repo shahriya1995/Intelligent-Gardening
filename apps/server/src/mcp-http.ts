@@ -37,4 +37,4 @@ app.delete("/mcp", async (req, res) => {
   await transport.handleRequest(req, res);
 });
 
-app.listen(8001, "0.0.0.0", () => console.log("Open Gardener MCP listening on http://0.0.0.0:8001/mcp"));
+app.listen(8001, "0.0.0.0", () => console.log("Intelligent Gardening MCP listening on http://0.0.0.0:8001/mcp"));

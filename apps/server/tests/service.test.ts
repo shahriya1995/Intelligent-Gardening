@@ -8,7 +8,7 @@ import * as service from "../src/service.js";
 
 let directory: string;
 beforeEach(() => {
-  directory = mkdtempSync(join(tmpdir(), "open-gardener-"));
+  directory = mkdtempSync(join(tmpdir(), "intelligent-gardening-"));
   process.env.GARDEN_DB_PATH = join(directory, "test.db");
 });
 afterEach(() => { closeDatabase(); rmSync(directory, { recursive: true }); });

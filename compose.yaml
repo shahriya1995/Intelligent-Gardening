@@ -1,6 +1,8 @@
 services:
   gardener-api:
-    build: .
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
     environment:
       GARDEN_DB_PATH: /data/garden.db
       GARDEN_API_KEY: ${GARDEN_API_KEY:-change-me}
@@ -11,8 +13,10 @@ services:
     restart: unless-stopped
 
   gardener-mcp:
-    build: .
-    command: ["node", "dist/mcp-http.js"]
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    command: ["node", "apps/server/dist/src/mcp-http.js"]
     environment:
       GARDEN_DB_PATH: /data/garden.db
     volumes:
@@ -21,8 +25,19 @@ services:
       - "8101:8001"
     restart: unless-stopped
 
+  gardener-web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    depends_on:
+      - gardener-api
+    ports:
+      - "5200:80"
+    restart: unless-stopped
+
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
+    profiles: ["open-webui"]
     environment:
       WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:-replace-me-before-production}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
