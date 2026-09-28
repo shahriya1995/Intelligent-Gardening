@@ -1,9 +1,9 @@
 {
-  "name": "@open-gardener/server",
+  "name": "@intelligent-gardening/server",
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "Open Gardener REST, OpenAPI, and MCP server",
+  "description": "Intelligent Gardening REST, OpenAPI, and MCP server",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx watch src/server.ts",

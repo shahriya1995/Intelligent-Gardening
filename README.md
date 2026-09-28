@@ -1,6 +1,6 @@
-# Open Gardener
+# Intelligent Gardening
 
-Open Gardener is a model-independent gardening platform. It provides a standalone web application, a REST/OpenAPI API, and MCP tools that can be connected to Open WebUI or another MCP client.
+Intelligent Gardening is a model-independent gardening platform. It provides a standalone web application, a REST/OpenAPI API, and MCP tools that can be connected to Open WebUI or another MCP client.
 
 ## Repository structure
 

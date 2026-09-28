@@ -5,7 +5,7 @@ COPY package.json package-lock.json* ./
 COPY apps/web/package.json ./apps/web/package.json
 RUN npm install
 COPY apps/web ./apps/web
-RUN npm run build --workspace @open-gardener/web
+RUN npm run build --workspace @intelligent-gardening/web
 
 FROM nginx:1.27-alpine
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf

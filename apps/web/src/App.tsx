@@ -29,9 +29,9 @@ export function App() {
   return (
     <main>
       <nav>
-        <a className="brand" href="/" aria-label="Open Gardener home">
-          <span className="brand-mark">OG</span>
-          <span>Open Gardener</span>
+        <a className="brand" href="/" aria-label="Intelligent Gardening home">
+          <span className="brand-mark">IG</span>
+          <span>Intelligent Gardening</span>
         </a>
         <span className={`status status-${apiState}`}>
           <span className="status-dot" />

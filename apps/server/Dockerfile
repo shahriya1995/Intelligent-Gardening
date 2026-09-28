@@ -5,8 +5,8 @@ COPY package.json package-lock.json* ./
 COPY apps/server/package.json ./apps/server/package.json
 RUN npm install
 COPY apps/server ./apps/server
-RUN npm test --workspace @open-gardener/server
-RUN npm run build --workspace @open-gardener/server
+RUN npm test --workspace @intelligent-gardening/server
+RUN npm run build --workspace @intelligent-gardening/server
 
 FROM node:22-slim
 WORKDIR /app

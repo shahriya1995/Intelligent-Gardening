@@ -1,13 +1,13 @@
 {
-  "name": "open-gardener",
+  "name": "intelligent-gardening",
   "version": "0.3.0",
   "private": true,
   "description": "Model-independent gardening tools with separate web and server applications",
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "dev:server": "npm run dev --workspace @open-gardener/server",
-    "dev:web": "npm run dev --workspace @open-gardener/web",
+    "dev:server": "npm run dev --workspace @intelligent-gardening/server",
+    "dev:web": "npm run dev --workspace @intelligent-gardening/web",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present"
   },

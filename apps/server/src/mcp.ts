@@ -11,7 +11,7 @@ const output = (value: unknown) => ({
 });
 
 export function createMcpServer(): McpServer {
-  const server = new McpServer({ name: "Open Gardener", version: "0.2.0" });
+  const server = new McpServer({ name: "Intelligent Gardening", version: "0.3.0" });
   server.tool("create_garden", "Create a garden profile for planning and scheduling.", { name: z.string(), location: z.string().default(""), hardiness_zone: z.string().default("") }, (v) => output(service.createGarden(v.name, v.location, v.hardiness_zone)));
   server.tool("list_gardens", "List garden profiles available to this installation.", {}, () => output(service.listGardens()));
   server.tool("add_garden_plant", "Remember a plant that is growing in a saved garden. Use this when the user says they have, planted, or added a plant.", { garden_id: z.number().int(), name: z.string().min(1), variety: z.string().default(""), quantity: z.number().int().positive().default(1), planted_date: z.union([z.string().date(), z.literal("")]).default(""), notes: z.string().default("") }, (v) => output(service.addPlant(v.garden_id, v.name, v.variety, v.quantity, v.planted_date, v.notes)));

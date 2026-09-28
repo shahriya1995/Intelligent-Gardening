@@ -41,5 +41,5 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
 
 if (process.env.NODE_ENV !== "test") {
   getDatabase();
-  app.listen(8000, "0.0.0.0", () => console.log("Open Gardener API listening on http://0.0.0.0:8000"));
+  app.listen(8000, "0.0.0.0", () => console.log("Intelligent Gardening API listening on http://0.0.0.0:8000"));
 }
