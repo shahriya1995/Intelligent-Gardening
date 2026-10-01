@@ -6,6 +6,7 @@ services:
     environment:
       GARDEN_DB_PATH: /data/garden.db
       GARDEN_API_KEY: ${GARDEN_API_KEY:-change-me}
+      GARDEN_TIMEZONE: ${GARDEN_TIMEZONE:-America/Los_Angeles}
     volumes:
       - gardener-data:/data
     ports:
@@ -19,12 +20,28 @@ services:
     command: ["node", "apps/server/dist/src/mcp-http.js"]
     environment:
       GARDEN_DB_PATH: /data/garden.db
+      GARDEN_TIMEZONE: ${GARDEN_TIMEZONE:-America/Los_Angeles}
     volumes:
       - gardener-data:/data
     ports:
       - "8101:8001"
     restart: unless-stopped
 
+  gardener-reminders:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    command: ["node", "apps/server/dist/src/reminder-worker.js"]
+    profiles: ["reminders"]
+    environment:
+      GARDEN_DB_PATH: /data/garden.db
+      GARDEN_TIMEZONE: ${GARDEN_TIMEZONE:-America/Los_Angeles}
+      OPEN_WEBUI_REMINDER_WEBHOOK_URL: ${OPEN_WEBUI_REMINDER_WEBHOOK_URL:-}
+    volumes:
+      - gardener-data:/data
+    depends_on:
+      - open-webui
+    restart: unless-stopped
   gardener-web:
     build:
       context: .

@@ -18,9 +18,14 @@ flowchart LR
     MCP --> Service
     Service --> DB[(SQLite garden.db)]
     MCP --> Weather[Open-Meteo]
+    DB --> Reminders[Reminder worker]
+    Reminders -->|Channel webhook| Client
+    Client -->|Browser notification while open| User
 ```
 
 The API and MCP processes are built from the same TypeScript server application. They use the same service layer and share one SQLite database through a Docker volume.
+
+The reminder design, scope, and remaining live test are recorded in [the SQLite reminders plan](docs/plans/sqlite-openwebui-reminders.md).
 
 | Component | Technology | Default address |
 | --- | --- | --- |
@@ -37,6 +42,7 @@ The API and MCP processes are built from the same TypeScript server application.
 - List active plants and archive plants that are no longer growing.
 - Schedule dated gardening tasks, list outstanding work, and mark tasks complete.
 - Store reference documents with publisher, region, tags, and source URL.
+- Deliver SQLite garden task reminders to an Open WebUI channel at a chosen local time or 09:00 by default.
 - Search saved references with lexical ranking and return citation metadata.
 - Get the current date and time for date-sensitive planning through MCP.
 - Get live conditions and forecasts from Open-Meteo for a saved garden through MCP.
@@ -180,6 +186,32 @@ Show my outstanding garden tasks.
 ```
 
 The current MCP endpoint has no bearer-token validation and is intended for local development. Do not expose port `8101` publicly.
+
+
+## Enable SQLite reminders in Open WebUI
+
+Garden tasks are stored in SQLite. The optional reminder worker posts due tasks to a private Open WebUI channel. The channel can display browser notifications while Open WebUI is open.
+
+1. In Open WebUI, create a private channel named **Garden reminders**. In its channel settings, create a channel webhook and copy its URL.
+2. Put the webhook URL in `.env` as `OPEN_WEBUI_REMINDER_WEBHOOK_URL`. For containers in this Compose stack, replace the copied URL's host and port with `open-webui:8080`, keeping its `/api/v1/channels/webhooks/...` path and token. For example:
+
+   ```dotenv
+   GARDEN_TIMEZONE=America/Los_Angeles
+   OPEN_WEBUI_REMINDER_WEBHOOK_URL=http://open-webui:8080/api/v1/channels/webhooks/your-id/your-token
+   ```
+
+3. In Open WebUI, enable **Browser Notifications** under Settings > Notifications and allow notification permission in your browser. Keep the Open WebUI tab or installed app open when expecting a browser notification.
+4. Start the reminder worker alongside Open WebUI and MCP:
+
+   ```bash
+   docker compose --profile open-webui --profile reminders up -d --build
+   ```
+
+5. In a chat with the gardening MCP tools enabled, ask: “Schedule a garden task to water my Backyard garden today, and remind me at a time five minutes from now.” Confirm the tool result contains `reminder_at`. When due, the message should appear in the private channel.
+
+Check worker output with `docker compose --profile reminders logs gardener-reminders`. If a webhook attempt fails, the task remains pending and the worker retries. The webhook URL contains a posting token; keep `.env` private.
+
+A date-only task reminds at 09:00 in `GARDEN_TIMEZONE`. You can give an exact `reminder_time` in 24-hour `HH:mm` format and an IANA `reminder_timezone`, such as `America/Los_Angeles`. Tasks that existed before this feature get reminders only if their due time was still in the future when the updated database first opened. A completed task will not remind. Open WebUI does not send browser push notifications while its app is closed.
 
 ## Local TypeScript development
 

@@ -1,4 +1,5 @@
 import { getDatabase } from "./db.js";
+import { DEFAULT_REMINDER_TIME, gardenTimezone, reminderInstant } from "./reminder-time.js";
 import type { Garden, GardenPlant, GardenTask, KnowledgeDocument, SearchResult } from "./types.js";
 
 type SqlValue = string | number | null;
@@ -29,10 +30,12 @@ export function listGardens(): Garden[] {
   return getDatabase().prepare("SELECT * FROM gardens ORDER BY created_at DESC, id DESC").all().map((row) => gardenRow(row as Record<string, SqlValue>));
 }
 
-export function createTask(gardenId: number, title: string, dueDate: string, plant = "", notes = ""): GardenTask {
+export function createTask(gardenId: number, title: string, dueDate: string, plant = "", notes = "", reminderTime = DEFAULT_REMINDER_TIME, reminderTimezone = gardenTimezone()): GardenTask {
+  const reminderAt = reminderInstant(dueDate, reminderTime, reminderTimezone);
   const db = getDatabase();
   if (!db.prepare("SELECT 1 FROM gardens WHERE id=?").get(gardenId)) throw new Error(`Garden ${gardenId} does not exist`);
-  const result = db.prepare("INSERT INTO tasks(garden_id, title, due_date, plant, notes) VALUES (?, ?, ?, ?, ?)").run(gardenId, title, dueDate, plant, notes);
+  const result = db.prepare("INSERT INTO tasks(garden_id, title, due_date, plant, notes, reminder_time, reminder_timezone, reminder_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+    .run(gardenId, title, dueDate, plant, notes, reminderTime, reminderTimezone, reminderAt);
   return taskRow(db.prepare("SELECT * FROM tasks WHERE id=?").get(Number(result.lastInsertRowid)) as Record<string, SqlValue>);
 }
 
