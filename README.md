@@ -25,6 +25,8 @@ flowchart LR
 
 The API and MCP processes are built from the same TypeScript server application. They use the same service layer and share one SQLite database through a Docker volume.
 
+The reminder design, scope, and remaining live test are recorded in [the SQLite reminders plan](docs/plans/sqlite-openwebui-reminders.md).
+
 | Component | Technology | Default address |
 | --- | --- | --- |
 | Standalone web app | React, TypeScript, Vite, Nginx | `http://localhost:5200` |
