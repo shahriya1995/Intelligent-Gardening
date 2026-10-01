@@ -11,6 +11,10 @@ export interface GardenTask {
   garden_id: number;
   title: string;
   due_date: string;
+  reminder_time: string;
+  reminder_timezone: string;
+  reminder_at: string | null;
+  reminder_sent_at: string | null;
   plant: string;
   notes: string;
   completed: boolean;

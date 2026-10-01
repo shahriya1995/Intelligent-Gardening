@@ -10,6 +10,11 @@ export const taskSchema = z.object({
   garden_id: z.number().int().positive(),
   title: z.string().min(1).max(200),
   due_date: z.string().date(),
+  reminder_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),
+  reminder_timezone: z.string().min(1).max(100).refine((value) => {
+    try { new Intl.DateTimeFormat("en", { timeZone: value }); return true; }
+    catch { return false; }
+  }, "Invalid IANA timezone").optional(),
   plant: z.string().max(120).default(""),
   notes: z.string().max(2000).default(""),
 });

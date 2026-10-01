@@ -27,7 +27,7 @@ app.get("/gardens", (_req, res) => res.json(service.listGardens()));
 app.post("/plants", (req, res) => { const value = plantSchema.parse(req.body); res.json(service.addPlant(value.garden_id, value.name, value.variety, value.quantity, value.planted_date, value.notes)); });
 app.get("/gardens/:gardenId/plants", (req, res) => res.json(service.listPlants(Number(req.params.gardenId), req.query.include_archived === "true")));
 app.post("/plants/:plantId/archive", (req, res) => res.json(service.archivePlant(Number(req.params.plantId))));
-app.post("/tasks", (req, res) => { const value = taskSchema.parse(req.body); res.json(service.createTask(value.garden_id, value.title, value.due_date, value.plant, value.notes)); });
+app.post("/tasks", (req, res) => { const value = taskSchema.parse(req.body); res.json(service.createTask(value.garden_id, value.title, value.due_date, value.plant, value.notes, value.reminder_time, value.reminder_timezone)); });
 app.get("/gardens/:gardenId/tasks", (req, res) => res.json(service.listTasks(Number(req.params.gardenId), req.query.include_completed === "true")));
 app.post("/tasks/:taskId/complete", (req, res) => res.json(service.completeTask(Number(req.params.taskId))));
 app.post("/knowledge/documents", (req, res) => { const value = documentSchema.parse(req.body); res.json(service.addDocument(value)); });
